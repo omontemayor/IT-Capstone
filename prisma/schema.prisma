@@ -1,86 +1,28 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
-}
-
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum AttendanceStatus {
-  PRESENT
-  LATE
-  EXCUSED
-  ABSENT
+generator client {
+  provider = "prisma-client-js"
 }
 
-model Student {
-  id          String       @id @default(uuid())
-  universityId String?     @unique
-  email       String       @unique
-  firstName   String
-  lastName    String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  attendance  Attendance[]
+model User {
+  id        Int         @id @default(autoincrement())
+  email     String      @unique
+  name      String?
+  createdAt DateTime    @default(now())
+  credentials Credential[]
 }
 
-model Faculty {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  firstName String
-  lastName  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  courses   Course[]
-}
+model Credential {
+  id                 Int      @id @default(autoincrement())
+  credentialId       String   @unique
+  userId             Int
+  transports         String?
+  publicKey          String
+  counter            Int
+  createdAt          DateTime @default(now())
 
-model Course {
-  id        String    @id @default(uuid())
-  code      String
-  title     String
-  semester  String
-  facultyId String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  faculty  Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
-  sessions Session[]
-
-  @@unique([code, semester])
-}
-
-model Session {
-  id          String    @id @default(uuid())
-  courseId    String
-  startsAt    DateTime
-  endsAt      DateTime
-  qrNonce     String    @default(uuid())
-  qrExpiresAt DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  course     Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  attendance Attendance[]
-}
-
-model Attendance {
-  id          String           @id @default(uuid())
-  studentId   String
-  sessionId   String
-  status      AttendanceStatus @default(PRESENT)
-  checkedInAt DateTime         @default(now())
-  deviceId    String?
-
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, sessionId])
+  user User @relation(fields: [userId], references: [id])
 }
