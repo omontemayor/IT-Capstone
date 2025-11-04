@@ -126,3 +126,46 @@ router.post('/authenticate/verify', async (req, res) => {
 });
 
 module.exports = router;
+
+const QRCode = require('qrcode');
+
+// --- Generate QR code for a student
+router.get('/student/:id/qrcode', async (req, res) => {
+  const studentId = req.params.id;
+
+  // For demonstration: use a signed token (you could replace with JWT)
+  const validationToken = Buffer.from(`student:${studentId}:${Date.now()}`).toString('base64');
+
+  // Generate QR code
+  try {
+    const qrDataURL = await QRCode.toDataURL(validationToken);
+    res.json({ qr: qrDataURL, token: validationToken });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'QR code generation failed' });
+  }
+});
+
+// --- Validate QR code token
+router.post('/student/validate', async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Missing token' });
+
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const [prefix, studentId, timestamp] = decoded.split(':');
+
+    if (prefix !== 'student') return res.status(400).json({ error: 'Invalid token' });
+
+    // Optional: Check if token is too old (e.g., 5 minutes)
+    if (Date.now() - parseInt(timestamp) > 5 * 60 * 1000) {
+      return res.status(400).json({ error: 'Token expired' });
+    }
+
+    res.json({ ok: true, studentId });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Invalid token format' });
+  }
+});
+

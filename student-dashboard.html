@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard QR Test</title>
+</head>
+<body>
+  <h1>Student Dashboard QR Test</h1>
+  <input type="text" id="studentId" placeholder="Student ID" />
+  <button id="generateQR">Generate QR Code</button>
+  <div id="qrcode"></div>
+  <input type="text" id="scanToken" placeholder="Paste scanned QR token" />
+  <button id="validateQR">Validate QR Token</button>
+  <div id="validationResult"></div>
+  <script>
+    const API = 'http://localhost:3000/webauthn';
+    async function generateQR() {
+      const studentId = document.getElementById('studentId').value;
+      const data = await fetch(\\/student/\/qrcode\).then(r=>r.json());
+      document.getElementById('qrcode').innerHTML = <img src="\" />;
+      alert('QR code generated! Token: ' + data.token);
+    }
+    async function validateQR() {
+      const token = document.getElementById('scanToken').value;
+      const result = await fetch(\\/student/validate\, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token})}).then(r=>r.json());
+      document.getElementById('validationResult').innerText = result.ok ? \? Valid student: \\ : \? \\;
+    }
+    document.getElementById('generateQR').addEventListener('click', generateQR);
+    document.getElementById('validateQR').addEventListener('click', validateQR);
+  </script>
+</body>
+</html>
